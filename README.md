@@ -28,26 +28,47 @@ El backend procesa el proyecto como un Grafo Dirigido Acíclico $G = (V, A)$:
 
 ## 🚀 Levantamiento del Agente y Ejecución
 
-### 1. Clonar el Repositorio e Instalar Dependencias
+### 1. Clonar el Repositorio
+
 ```bash
 git clone https://github.com/JohanBermeo/net-struct-ai
 cd net-struct-ai
+```
+
+### 2. Entorno Virtual e Instalación de Dependencias
+
+**Windows (PowerShell):**
+
+```powershell
+python -m venv venv
+.\venv\Scripts\Activate.ps1
+pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-### 2. Levantamiento del Agente de IA Local (Ollama)
+**Linux / macOS:**
 
-Asegúrese de tener el servicio de Ollama activo en su entorno local con el modelo correspondiente corriendo en segundo plano:
+```bash
+python3 -m venv venv
+source venv/bin/activate
+pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+### 3. Levantamiento del Agente de IA Local (Ollama)
+
+Asegúrese de tener [Ollama](https://ollama.com/) instalado y el servicio activo con el modelo correspondiente en segundo plano:
 
 ```bash
 ollama run llama3
 ```
-## 3. Ejecución del Programa
 
-Para iniciar el servidor de desarrollo y desplegar la interfaz web, ejecute:
+### 4. Ejecución del Programa
+
+Con el entorno virtual activado, inicie la interfaz web desde la raíz del repositorio:
 
 ```bash
-streamlit run app.py
+streamlit run src/app.py
 ```
 
 ---
@@ -73,19 +94,35 @@ El sistema envía la estructura real en formato JSON hacia la API de Llama-3. El
 Cumpliendo con los criterios de calidad y documentación exigidos:
 
 ```plaintext
-├── PROYECTO FINAL_IO_IA_15.pdf  # Rúbrica oficial y condiciones obligatorias
-├── PROYECTO FINAL_IO_IA_16.pdf  # Guía técnica y parámetros complementarios
+net-struct-ai/
 ├── README.md                    # Documentación principal del repositorio
-├── requirements.txt             # Dependencias del proyecto (Streamlit, NetworkX, etc.)
+├── requirements.txt             # Dependencias Python (Streamlit, NetworkX, Ollama, etc.)
+├── .gitignore                   # Exclusiones de control de versiones (venv, cachés, secretos)
+├── venv/                        # Entorno virtual local (no versionado; generado al instalar)
+│
+├── PROYECTO FINAL_IO_IA_15.pdf  # Rúbrica oficial y condiciones obligatorias (opcional)
+├── PROYECTO FINAL_IO_IA_16.pdf  # Guía técnica y parámetros complementarios (opcional)
+│
 ├── assets/                      # Recursos gráficos y multimedia
-│   └── mapa_mental.pdf          # Mapa mental completo del tema estructurado
+│   └── mapa_mental.pdf          # Mapa mental del tema (agregar al entregar)
+│
 ├── docs/                        # Documentación académica del proyecto
-│   └── documento_final.pdf      # Problema, modelo matemático y análisis crítico
+│   └── documento_final.pdf      # Problema, modelo matemático y análisis crítico (agregar al entregar)
+│
 └── src/                         # Código fuente del sistema ejecutable
     ├── app.py                   # Interfaz de usuario (Streamlit UI)
     ├── agent.py                 # Conexión y prompts del Agente de IA (Ollama)
     └── core_math.py             # Motor de validación de grafos (NetworkX)
 ```
+
+| Ruta | Descripción |
+|------|-------------|
+| `src/app.py` | Punto de entrada de Streamlit; orquesta la UI y el flujo de datos. |
+| `src/agent.py` | Cliente Ollama y plantillas de prompt para auditoría en lenguaje natural. |
+| `src/core_math.py` | Validación DAG, precedencias y lógica PERT/CPM con NetworkX. |
+| `assets/` | Material visual de apoyo (mapa mental, diagramas exportados). |
+| `docs/` | Entregables académicos en PDF. |
+| `requirements.txt` | Versiones mínimas de Streamlit, NetworkX, pandas, requests y ollama. |
 
 ---
 
