@@ -27,12 +27,10 @@ class PERTNetwork:
 
         Estructura esperada de un diccionario en la lista:
         {
-            'id': str,           # ID de la actividad (ej. 'A', 'Dummy1')
+            'id': str,           # ID de la actividad (ej. 'A', 'Ficticia_1')
             'origen': int,       # ID numérico del nodo origen (evento inicio)
             'destino': int,      # ID numérico del nodo destino (evento fin)
-            'tiempo_a': float,   # Tiempo optimista
-            'tiempo_b': float,   # Tiempo pesimista
-            'duracion': float    # Duración estimada o base
+            'es_ficticia': bool  # Opcional: Indica si es una tarea de precedencia lógica pura
         }
         
         Args:
@@ -46,7 +44,7 @@ class PERTNetwork:
             raise TypeError("El argumento 'actividades' debe ser una lista de diccionarios.")
 
         # Atributos obligatorios para cada actividad según el requerimiento
-        claves_requeridas = {'id', 'origen', 'destino', 'tiempo_a', 'tiempo_b', 'duracion'}
+        claves_requeridas = {'id', 'origen', 'destino'}
 
         for indice, act in enumerate(actividades):
             if not isinstance(act, dict):
@@ -64,21 +62,8 @@ class PERTNetwork:
                 nodo_origen = int(act['origen'])
                 nodo_destino = int(act['destino'])
                 
-                # Conversión de parámetros de tiempo
-                tiempo_a = float(act['tiempo_a'])
-                tiempo_b = float(act['tiempo_b'])
-                duracion = float(act['duracion'])
-                
-                # Soporte para Tareas Ficticias:
-                # Se considera que un arco es tarea ficticia si su duración estipulada es 0.
-                # Sirven para mantener relaciones de precedencia lógicas complejas sin
-                # consumir tiempo real. Se fuerzan todos los tiempos a 0 para consistencia.
-                es_ficticia = (duracion == 0.0)
-
-                if es_ficticia:
-                    tiempo_a = 0.0
-                    tiempo_b = 0.0
-                    duracion = 0.0
+                # Soporte para Tareas Ficticias (estructurales)
+                es_ficticia = bool(act.get('es_ficticia', False))
 
             except (ValueError, TypeError) as error_conversion:
                 raise ValueError(
@@ -96,9 +81,6 @@ class PERTNetwork:
                 nodo_origen, 
                 nodo_destino, 
                 id_actividad=str(act['id']),
-                duracion_estimada=duracion,
-                tiempo_a=tiempo_a,
-                tiempo_b=tiempo_b,
                 es_ficticia=es_ficticia
             )
 
