@@ -15,9 +15,7 @@ def generar_plantilla_csv():
         "id_actividad": ["A", "B", "Ficticia_1"],
         "nodo_origen": [1, 2, 3],
         "nodo_destino": [2, 3, 4],
-        "tiempo_optimista": [2.0, 3.5, 0.0],
-        "tiempo_pesimista": [4.0, 6.0, 0.0],
-        "duracion_estimada": [3.0, 4.5, 0.0]
+        "es_ficticia": [False, False, True]
     })
     return df_plantilla.to_csv(index=False).encode('utf-8')
 
@@ -34,8 +32,7 @@ def validar_datos(df: pd.DataFrame) -> list:
         return errores # Si hay campos vacíos, abortamos la validación temprana para evitar excepciones de tipo
         
     columnas_requeridas = [
-        "id_actividad", "nodo_origen", "nodo_destino", 
-        "tiempo_optimista", "tiempo_pesimista", "duracion_estimada"
+        "id_actividad", "nodo_origen", "nodo_destino", "es_ficticia"
     ]
     
     columnas_faltantes = [col for col in columnas_requeridas if col not in df.columns]
@@ -66,17 +63,6 @@ def validar_datos(df: pd.DataFrame) -> list:
         except ValueError:
             errores.append(f"Actividad '{id_act}': nodo_origen y nodo_destino deben ser de tipo numérico.")
 
-        # 3. Validar tiempos y duraciones (Flotantes >= 0)
-        try:
-            t_opt = float(fila["tiempo_optimista"])
-            t_pes = float(fila["tiempo_pesimista"])
-            duracion = float(fila["duracion_estimada"])
-            
-            if t_opt < 0 or t_pes < 0 or duracion < 0:
-                errores.append(f"Actividad '{id_act}': tiempo_optimista, tiempo_pesimista y duracion_estimada no pueden ser negativos.")
-        except ValueError:
-            errores.append(f"Actividad '{id_act}': Los tiempos y duración deben ser valores numéricos flotantes.")
-
     return errores
 
 def main():
@@ -93,9 +79,7 @@ def main():
             "id_actividad": ["A", "B", "C"],
             "nodo_origen": [1, 2, 2],
             "nodo_destino": [2, 3, 4],
-            "tiempo_optimista": [1.0, 2.0, 1.5],
-            "tiempo_pesimista": [3.0, 4.0, 2.5],
-            "duracion_estimada": [2.0, 3.0, 2.0]
+            "es_ficticia": [False, False, False]
         })
 
     # Doble método de entrada mediante pestañas (Tabs)
@@ -115,9 +99,7 @@ def main():
                 "id_actividad": st.column_config.TextColumn("ID Actividad", required=True),
                 "nodo_origen": st.column_config.NumberColumn("Nodo Origen", required=True, min_value=1, step=1),
                 "nodo_destino": st.column_config.NumberColumn("Nodo Destino", required=True, min_value=1, step=1),
-                "tiempo_optimista": st.column_config.NumberColumn("T. Optimista ($a$)", required=True, min_value=0.0),
-                "tiempo_pesimista": st.column_config.NumberColumn("T. Pesimista ($b$)", required=True, min_value=0.0),
-                "duracion_estimada": st.column_config.NumberColumn("Duración ($T_{ij}$)", required=True, min_value=0.0),
+                "es_ficticia": st.column_config.CheckboxColumn("¿Es Ficticia?", default=False),
             }
         )
         st.session_state.datos_pert = df_editado
@@ -179,9 +161,7 @@ def main():
                         'id': str(fila['id_actividad']).strip(),
                         'origen': int(fila['nodo_origen']),
                         'destino': int(fila['nodo_destino']),
-                        'tiempo_a': float(fila['tiempo_optimista']),
-                        'tiempo_b': float(fila['tiempo_pesimista']),
-                        'duracion': float(fila['duracion_estimada'])
+                        'es_ficticia': bool(fila['es_ficticia'])
                     })
 
                 # Instanciar y cargar en el modelo del Integrante 2
