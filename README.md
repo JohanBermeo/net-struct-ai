@@ -38,37 +38,72 @@ cd net-struct-ai
 ### 2. Entorno Virtual e Instalación de Dependencias
 
 **Windows (PowerShell):**
-
 ```powershell
 python -m venv venv
 .\venv\Scripts\Activate.ps1
-pip install --upgrade pip
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+**Windows (Símbolo del sistema - CMD):**
+```cmd
+python -m venv venv
+.\venv\Scripts\activate.bat
+python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
 **Linux / macOS:**
-
 ```bash
 python3 -m venv venv
 source venv/bin/activate
-pip install --upgrade pip
+python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
 ### 3. Levantamiento del Agente de IA Local (Ollama)
 
-Asegúrese de tener [Ollama](https://ollama.com/) instalado y el servicio activo con el modelo correspondiente en segundo plano:
+Asegúrese de tener [Ollama](https://ollama.com/) instalado. Puede verificar la instalación y preparar el modelo ejecutable con los siguientes comandos:
 
 ```bash
+# 1. Verificar que Ollama está instalado correctamente
+ollama --version
+
+# 2. Descargar / Actualizar el modelo llama3 en local
+ollama pull llama3
+
+# 3. Listar los modelos locales descargados para confirmar que llama3 está listo
+ollama list
+
+# 4. Iniciar y ejecutar el servicio con el modelo llama3
 ollama run llama3
 ```
 
-### 4. Ejecución del Programa
+*Nota: Mantenga este servicio ejecutándose en segundo plano o en una terminal separada mientras utiliza la aplicación.*
 
-Con el entorno virtual activado, inicie la interfaz web desde la raíz del repositorio:
+### 4. Ejecución del Programa (Interfaz Streamlit)
+
+Con el entorno virtual activado y Ollama ejecutándose, inicie el servidor de desarrollo local de Streamlit:
 
 ```bash
 streamlit run src/app.py
+```
+
+La aplicación se abrirá automáticamente en su navegador predeterminado en `http://localhost:8501`.
+
+### 5. Ejecución de la Suite de Pruebas (Tests)
+
+Para ejecutar las pruebas unitarias y verificar el correcto funcionamiento del validador de red (ciclos, unicidad de fuente/destino y conservación de flujo):
+
+```bash
+# Ejecutar todas las pruebas unitarias
+pytest
+
+# O alternativamente a través del módulo python
+python -m pytest
+
+# Ejecutar las pruebas mostrando detalles individuales (modo detallado/verbose)
+pytest -v
 ```
 
 ---
