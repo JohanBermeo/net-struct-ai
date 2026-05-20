@@ -1,7 +1,7 @@
 # 🌐 Motor de Validación Estructural de Redes (PERT/CPM) con Agente de IA
 
 ## 📝 Descripción del Proyecto
-Este software de investigación aplicada modela, valida y audita la estructura lógica de proyectos utilizando la **Teoría de Grafos Dirigidos Acíclicos (DAG)**. El núcleo matemático en Python procesa la topología de la red mientras interactúa dinámicamente con un **Agente de Inteligencia Artificial (Ollama / Llama-3)** encargado de interpretar los resultados, identificar redundancias estructurales y apoyar la toma de decisiones.
+Este software de investigación aplicada modela, valida y audita la estructura lógica de proyectos utilizando la **Teoría de Grafos Dirigidos Acíclicos (DAG)**. El núcleo matemático en Python procesa la topología de la red mientras interactúa dinámicamente con un **Agente de Inteligencia Artificial (Ollama / Qwen 2.5 (3B))** encargado de interpretar los resultados, identificar redundancias estructurales y apoyar la toma de decisiones.
 
 El desarrollo de este sistema da estricto cumplimiento a los componentes obligatorios de la asignatura: el agente de IA interactúa directamente con datos reales y modelados del backend sin reemplazar el rigor matemático del modelo de Investigación de Operaciones.
 
@@ -10,7 +10,7 @@ El desarrollo de este sistema da estricto cumplimiento a los componentes obligat
 ## 🛠️ Stack Tecnológico
 * **Frontend & UI:** Streamlit (Tablas dinámicas mediante `st.data_editor` y reactividad en tiempo real).
 * **Motor de Grafos:** NetworkX (Validación de aciclicidad, ordenamiento topológico y cálculo de componentes).
-* **Agente de IA:** Ollama + Llama-3-8B (Despliegue de API local para auditoría y generación de escenarios).
+* **Agente de IA:** Ollama + Qwen 2.5 (3B) (Despliegue de API local para auditoría y generación de escenarios).
 
 ---
 
@@ -38,37 +38,80 @@ cd net-struct-ai
 ### 2. Entorno Virtual e Instalación de Dependencias
 
 **Windows (PowerShell):**
-
 ```powershell
 python -m venv venv
 .\venv\Scripts\Activate.ps1
-pip install --upgrade pip
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+**Windows (Símbolo del sistema - CMD):**
+```cmd
+python -m venv venv
+.\venv\Scripts\activate.bat
+python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
 **Linux / macOS:**
-
 ```bash
 python3 -m venv venv
 source venv/bin/activate
-pip install --upgrade pip
+python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
 ### 3. Levantamiento del Agente de IA Local (Ollama)
 
-Asegúrese de tener [Ollama](https://ollama.com/) instalado y el servicio activo con el modelo correspondiente en segundo plano:
+Asegúrese de tener [Ollama](https://ollama.com/) instalado. Puede verificar la instalación y preparar el modelo ejecutable con los siguientes comandos:
 
 ```bash
-ollama run llama3
+# 1. Verificar que Ollama está instalado correctamente
+ollama --version
+
+# 2. Descargar / Actualizar el modelo qwen2.5:3b en local
+ollama pull qwen2.5:3b
+
+# 3. Listar los modelos locales descargados para confirmar que qwen2.5:3b está listo
+ollama list
+
+# 4. Iniciar y ejecutar el servicio con el modelo qwen2.5:3b
+ollama run qwen2.5:3b
 ```
 
-### 4. Ejecución del Programa
+*Nota: Mantenga este servicio ejecutándose en segundo plano o en una terminal separada mientras utiliza la aplicación.*
 
-Con el entorno virtual activado, inicie la interfaz web desde la raíz del repositorio:
+### 4. Ejecución del Programa (Interfaz Streamlit)
 
+Existen dos formas de ejecutar el programa en Windows:
+
+#### Opción A: Ejecución automática con un solo comando (Recomendado)
+El proyecto incluye un script `run.bat` que automatiza la comprobación de Ollama y el arranque de Streamlit. Ejecute desde su consola o haga doble clic en el archivo:
+```powershell
+.\run.bat
+```
+
+#### Opción B: Ejecución manual
+Con el entorno virtual activado y Ollama ejecutándose de fondo, inicie el servidor de desarrollo de Streamlit:
 ```bash
 streamlit run src/app.py
+```
+
+La aplicación se abrirá automáticamente en su navegador predeterminado en `http://localhost:8501`.
+
+### 5. Ejecución de la Suite de Pruebas (Tests)
+
+Para ejecutar las pruebas unitarias y verificar el correcto funcionamiento del validador de red (ciclos, unicidad de fuente/destino y conservación de flujo):
+
+```bash
+# Ejecutar todas las pruebas unitarias
+pytest
+
+# O alternativamente a través del módulo python
+python -m pytest
+
+# Ejecutar las pruebas mostrando detalles individuales (modo detallado/verbose)
+pytest -v
 ```
 
 ---
@@ -85,7 +128,7 @@ El motor de `NetworkX` valida la viabilidad del grafo, resuelve actividades fict
 
 ## Auditoría del Agente de IA
 
-El sistema envía la estructura real en formato JSON hacia la API de Llama-3. El agente devuelve un reporte automatizado en lenguaje natural explicando la lógica del proyecto, detectando cuellos de botella y proponiendo mejoras estructurales.
+El sistema envía la estructura real en formato JSON hacia la API de Qwen 2.5 (3B). El agente devuelve un reporte automatizado en lenguaje natural explicando la lógica del proyecto, detectando cuellos de botella y proponiendo mejoras estructurales.
 
 ---
 
@@ -111,15 +154,19 @@ net-struct-ai/
 │
 └── src/                         # Código fuente del sistema ejecutable
     ├── app.py                   # Interfaz de usuario (Streamlit UI)
-    ├── agent.py                 # Conexión y prompts del Agente de IA (Ollama)
-    └── core_math.py             # Motor de validación de grafos (NetworkX)
+    ├── ai_orchestrator.py       # Conexión y prompts del Agente de IA (Ollama)
+    ├── core_math.py             # Motor de validación de grafos (NetworkX)
+    ├── network_model.py         # Modelo de datos PERT/CPM
+    └── structural_validator.py  # Validador de consistencia y generación de SDD
 ```
 
 | Ruta | Descripción |
 |------|-------------|
 | `src/app.py` | Punto de entrada de Streamlit; orquesta la UI y el flujo de datos. |
-| `src/agent.py` | Cliente Ollama y plantillas de prompt para auditoría en lenguaje natural. |
-| `src/core_math.py` | Validación DAG, precedencias y lógica PERT/CPM con NetworkX. |
+| `src/ai_orchestrator.py` | Cliente Ollama y plantillas de prompt para auditoría en lenguaje natural (Qwen 2.5). |
+| `src/core_math.py` | Lógica de grafos con NetworkX y utilidades. |
+| `src/network_model.py` | Carga e inicialización de actividades. |
+| `src/structural_validator.py` | Validación DAG, ciclo, y generación de SDD. |
 | `assets/` | Material visual de apoyo (mapa mental, diagramas exportados). |
 | `docs/` | Entregables académicos en PDF. |
 | `requirements.txt` | Versiones mínimas de Streamlit, NetworkX, pandas, requests y ollama. |

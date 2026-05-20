@@ -121,22 +121,59 @@ def find_orphan_nodes(graph: nx.DiGraph) -> List[str]:
 
 
 def validate_flow_conservation(graph: nx.DiGraph) -> List[str]:
+    """
+    Valida la continuidad del flujo en la red PERT/CPM (AOA).
+    Todo nodo (evento) en el grafo debe estar en un camino desde el nodo de inicio único (fuente)
+    hasta el nodo de fin único (sumidero). Si un nodo no es alcanzable desde la fuente, o no puede
+    alcanzar el sumidero, se reporta como un error de flujo.
+    """
     errors = []
+    if len(graph.nodes) == 0:
+        return errors
+
+    sources = [n for n in graph.nodes() if graph.in_degree(n) == 0]
+    sinks = [n for n in graph.nodes() if graph.out_degree(n) == 0]
+
+    # Si hay múltiples fuentes o sumideros, la unicidad ya reportará esto,
+    # pero aún podemos validar el alcance para cada una de las fuentes/sumideros.
+    # Si el grafo no tiene fuentes o sumideros (por ejemplo, es un ciclo puro), salimos.
+    if not sources or not sinks:
+        return errors
+
+    # Usar BFS para encontrar todos los nodos alcanzables desde cualquier fuente
+    reachable_from_source = set()
+    for s in sources:
+        reachable_from_source.add(s)
+        visited = set()
+        queue = deque([s])
+        while queue:
+            curr = queue.popleft()
+            for neighbor in graph.successors(curr):
+                if neighbor not in visited:
+                    visited.add(neighbor)
+                    reachable_from_source.add(neighbor)
+                    queue.append(neighbor)
+
+    # Usar BFS en el grafo invertido para encontrar todos los nodos que pueden alcanzar algún sumidero
+    can_reach_sink = set()
+    for t in sinks:
+        can_reach_sink.add(t)
+        visited = set()
+        queue = deque([t])
+        while queue:
+            curr = queue.popleft()
+            for neighbor in graph.predecessors(curr):
+                if neighbor not in visited:
+                    visited.add(neighbor)
+                    can_reach_sink.add(neighbor)
+                    queue.append(neighbor)
+
     for node in graph.nodes():
-        in_flow = sum(
-            graph.edges[u, v].get("weight", 1)
-            for u, v in graph.in_edges(node)
-        )
-        out_flow = sum(
-            graph.edges[u, v].get("weight", 1)
-            for u, v in graph.out_edges(node)
-        )
-        if in_flow == 0 or out_flow == 0:
-            continue
-        if abs(in_flow - out_flow) > 1e-9:
-            errors.append(
-                f"Flow mismatch at node '{node}': in={in_flow}, out={out_flow}"
-            )
+        if node not in reachable_from_source:
+            errors.append(f"El nodo '{node}' no es alcanzable desde el nodo inicial del proyecto.")
+        if node not in can_reach_sink:
+            errors.append(f"El nodo '{node}' no puede alcanzar el nodo final (callejón sin salida).")
+
     return errors
 
 
