@@ -1,5 +1,8 @@
 import networkx as nx
-from core_math import validate_dag, find_source_nodes, find_sink_nodes, validate_flow_conservation
+try:
+    from core_math import validate_dag, find_source_nodes, find_sink_nodes, validate_flow_conservation
+except ModuleNotFoundError:
+    from src.core_math import validate_dag, find_source_nodes, find_sink_nodes, validate_flow_conservation
 
 def validate_network_structure(red_pert) -> dict:
     """

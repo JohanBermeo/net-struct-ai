@@ -14,6 +14,7 @@ from src.core_math import (
     topological_sort,
     serialize_network,
 )
+from src.network_model import PERTNetwork
 
 # ---------------------------------------------------------------------------
 # Phase 1 — T2.1: Cycle Detection
@@ -149,13 +150,11 @@ class TestFlowConservation:
         errors = validate_flow_conservation(g)
         assert errors == []
 
-    def test_unbalanced_flow_reported(self):
-        g = build_graph(
-            ["A", "B", "C", "D", "E"],
-            [("A", "B"), ("A", "C"), ("B", "D"), ("C", "D"), ("B", "E")]
-        )
-        for _, _, d in g.edges(data=True):
-            d["weight"] = 1
+    def test_unreachable_node_reported(self):
+        # A -> B -> C y un ciclo desconectado D -> E -> D
+        g = nx.DiGraph()
+        g.add_nodes_from(["A", "B", "C", "D", "E"])
+        g.add_edges_from([("A", "B"), ("B", "C"), ("D", "E"), ("E", "D")])
         errors = validate_flow_conservation(g)
         assert len(errors) > 0
 
@@ -218,3 +217,138 @@ class TestSerializeNetwork:
         g = build_graph(["A", "B", "C"], [("A", "B")])
         result = serialize_network(g, {})
         assert set(result["activities"]) == {"A", "B", "C"}
+
+
+class TestAONtoAOA:
+    def test_simple_sequence(self):
+        # A -> B -> C
+        activities = [
+            {"id": "A", "predecessors": []},
+            {"id": "B", "predecessors": ["A"]},
+            {"id": "C", "predecessors": ["B"]}
+        ]
+        net = PERTNetwork()
+        net.cargar_desde_lista(activities)
+        g = net.grafo
+        
+        # Debe tener 4 nodos secuenciales en una ruta lineal
+        assert len(g.nodes) == 4
+        # Las aristas deben corresponder a A, B, C y no debe haber ficticias
+        edges_data = list(g.edges(data=True))
+        assert len(edges_data) == 3
+        
+        actividades_reales = [d["id_actividad"] for u, v, d in edges_data if not d["es_ficticia"]]
+        assert sorted(actividades_reales) == ["A", "B", "C"]
+        
+        ficticias = [d["id_actividad"] for u, v, d in edges_data if d["es_ficticia"]]
+        assert len(ficticias) == 0
+
+    def test_parallel_split(self):
+        # A es predecesora de B y C (bifurcación)
+        activities = [
+            {"id": "A", "predecessors": []},
+            {"id": "B", "predecessors": ["A"]},
+            {"id": "C", "predecessors": ["A"]}
+        ]
+        net = PERTNetwork()
+        net.cargar_desde_lista(activities)
+        g = net.grafo
+        
+        # Al bifurcarse B y C desde A, ambos terminan en el sink.
+        # Por lo tanto, son aristas paralelas. La resolución paralela debe activarse
+        # para que una de ellas vaya a través de un nodo y arco ficticio.
+        edges_data = list(g.edges(data=True))
+        ficticias = [d["id_actividad"] for u, v, d in edges_data if d["es_ficticia"]]
+        assert len(ficticias) >= 1
+        
+        reales = [d["id_actividad"] for u, v, d in edges_data if not d["es_ficticia"]]
+        assert sorted(reales) == ["A", "B", "C"]
+
+    def test_parallel_merge(self):
+        # A y B son predecesoras de C (unión)
+        activities = [
+            {"id": "A", "predecessors": []},
+            {"id": "B", "predecessors": []},
+            {"id": "C", "predecessors": ["A", "B"]}
+        ]
+        net = PERTNetwork()
+        net.cargar_desde_lista(activities)
+        g = net.grafo
+        
+        # A y B inician en el nodo 1 y terminan en el mismo nodo inicio de C.
+        # Por tanto, son paralelas. La resolución paralela debe activarse.
+        edges_data = list(g.edges(data=True))
+        ficticias = [d["id_actividad"] for u, v, d in edges_data if d["es_ficticia"]]
+        assert len(ficticias) >= 1
+        
+        reales = [d["id_actividad"] for u, v, d in edges_data if not d["es_ficticia"]]
+        assert sorted(reales) == ["A", "B", "C"]
+
+    def test_complex_fictitious_insertion(self):
+        # A y B iniciales; C depende de A; D depende de A y B
+        # Esto requiere que el final de A se divida (hacia C directamente, y hacia D junto con B)
+        activities = [
+            {"id": "A", "predecessors": []},
+            {"id": "B", "predecessors": []},
+            {"id": "C", "predecessors": ["A"]},
+            {"id": "D", "predecessors": ["A", "B"]}
+        ]
+        net = PERTNetwork()
+        net.cargar_desde_lista(activities)
+        g = net.grafo
+        
+        # Debería haber actividades ficticias debido a que A está en múltiples conjuntos de precedencias
+        edges_data = list(g.edges(data=True))
+        ficticias = [d["id_actividad"] for u, v, d in edges_data if d["es_ficticia"]]
+        assert len(ficticias) >= 1
+        
+        reales = [d["id_actividad"] for u, v, d in edges_data if not d["es_ficticia"]]
+        assert sorted(reales) == ["A", "B", "C", "D"]
+
+    def test_user_complex_network(self):
+        # El conjunto de datos real provisto por el usuario
+        activities = [
+            {"id": "A", "predecessors": []},
+            {"id": "B", "predecessors": ["A"]},
+            {"id": "C", "predecessors": ["A"]},
+            {"id": "D", "predecessors": ["A"]},
+            {"id": "E", "predecessors": ["A"]},
+            {"id": "F", "predecessors": ["A"]},
+            {"id": "G", "predecessors": ["A"]},
+            {"id": "H", "predecessors": ["B"]},
+            {"id": "I", "predecessors": ["G"]},
+            {"id": "J", "predecessors": ["C", "D", "E", "F"]},
+            {"id": "K", "predecessors": ["C", "D", "E", "F"]},
+            {"id": "L", "predecessors": ["C", "D", "E", "F"]},
+            {"id": "M", "predecessors": ["C", "D", "E", "F"]},
+            {"id": "N", "predecessors": ["C", "D", "E", "F"]},
+            {"id": "O", "predecessors": ["C", "D", "E", "F"]},
+            {"id": "P", "predecessors": ["M", "L"]},
+            {"id": "R", "predecessors": ["M"]},
+            {"id": "S", "predecessors": ["N"]},
+            {"id": "T", "predecessors": ["O", "N"]},
+            {"id": "U", "predecessors": ["K", "I"]},
+            {"id": "V", "predecessors": ["H", "J"]},
+            {"id": "W", "predecessors": ["V", "P", "R", "S", "T", "U"]},
+            {"id": "X", "predecessors": ["V", "P", "R", "S", "T", "U"]}
+        ]
+        net = PERTNetwork()
+        net.cargar_desde_lista(activities)
+        g = net.grafo
+        
+        # Debe ser un DAG válido
+        assert nx.is_directed_acyclic_graph(g)
+        
+        # Deben existir todas las actividades reales
+        edges_data = list(g.edges(data=True))
+        reales = [d["id_actividad"] for u, v, d in edges_data if not d["es_ficticia"]]
+        expected_reales = [act["id"] for act in activities]
+        assert sorted(reales) == sorted(expected_reales)
+        
+        # Sin errores de validación de estructura (flujo, unicidad, DAG)
+        from src.structural_validator import validate_network_structure
+        result = validate_network_structure(net)
+        assert result["SDD"]["estado_red"]["es_dag"] is True
+        assert result["SDD"]["estado_red"]["unicidad"] is True
+        assert result["SDD"]["estado_red"]["conservacion_flujo"] is True
+        assert len(result["SDD"]["errores_topologicos"]) == 0
