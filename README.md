@@ -172,19 +172,19 @@ net-struct-ai/
 
 # ⚖️ Rúbrica de Evaluación Aplicada
 
-El proyecto se evalúa estrictamente bajo los siguientes criterios de calidad [cite: 2, 3]:
+El proyecto se evalúa estrictamente bajo los siguientes criterios de calidad:
 
 - **Modelamiento (30%)**:  
-  Rigor en la formulación matemática de la red y control de precedencias [cite: 2, 3].
+  Rigor en la formulación matemática de la red y control de precedencias.
 
 - **Implementación (25%)**:  
-  Código funcional, ejecutable y libre de fallos en Streamlit [cite: 2, 3].
+  Código funcional, ejecutable y libre de fallos en Streamlit.
 
 - **Agente IA (20%)**:  
-  Aporte de valor real, interpretación analítica de datos y soporte a la decisión [cite: 2, 3].
+  Aporte de valor real, interpretación analítica de datos y soporte a la decisión.
 
 - **Análisis (15%)**:  
-  Profundidad crítica en la evaluación de la estructura del modelo [cite: 2, 3].
+  Profundidad crítica en la evaluación de la estructura del modelo.
 
 - **Documentación (10%)**:  
-  Claridad, organización y profesionalismo en el repositorio y código [cite: 2, 3].
+  Claridad, organización y profesionalismo en el repositorio y código.
