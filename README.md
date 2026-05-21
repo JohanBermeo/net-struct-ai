@@ -138,26 +138,23 @@ Cumpliendo con los criterios de calidad y documentación exigidos:
 
 ```plaintext
 net-struct-ai/
+├── .gitignore                   # Exclusiones de control de versiones (venv, cachés, secretos)
 ├── README.md                    # Documentación principal del repositorio
 ├── requirements.txt             # Dependencias Python (Streamlit, NetworkX, Ollama, etc.)
-├── .gitignore                   # Exclusiones de control de versiones (venv, cachés, secretos)
-├── venv/                        # Entorno virtual local (no versionado; generado al instalar)
-│
-├── PROYECTO FINAL_IO_IA_15.pdf  # Rúbrica oficial y condiciones obligatorias (opcional)
-├── PROYECTO FINAL_IO_IA_16.pdf  # Guía técnica y parámetros complementarios (opcional)
-│
+├── run.bat                      # Script de ejecución automatizada en Windows
 ├── assets/                      # Recursos gráficos y multimedia
-│   └── mapa_mental.pdf          # Mapa mental del tema (agregar al entregar)
-│
+│   └── .gitkeep                 # Archivo de control para preservar la carpeta en Git
 ├── docs/                        # Documentación académica del proyecto
-│   └── documento_final.pdf      # Problema, modelo matemático y análisis crítico (agregar al entregar)
-│
-└── src/                         # Código fuente del sistema ejecutable
-    ├── app.py                   # Interfaz de usuario (Streamlit UI)
-    ├── ai_orchestrator.py       # Conexión y prompts del Agente de IA (Ollama)
-    ├── core_math.py             # Motor de validación de grafos (NetworkX)
-    ├── network_model.py         # Modelo de datos PERT/CPM
-    └── structural_validator.py  # Validador de consistencia y generación de SDD
+│   └── .gitkeep                 # Archivo de control para preservar la carpeta en Git
+├── src/                         # Código fuente del sistema ejecutable
+│   ├── ai_orchestrator.py       # Conexión y prompts del Agente de IA (Ollama)
+│   ├── app.py                   # Interfaz de usuario (Streamlit UI)
+│   ├── core_math.py             # Motor de validación de grafos (NetworkX)
+│   ├── network_model.py         # Modelo de datos PERT/CPM
+│   └── structural_validator.py  # Validador de consistencia y generación de SDD
+├── tests/                       # Pruebas unitarias
+│   └── test_core_math.py        # Casos de prueba para validaciones del backend
+└── venv/                        # Entorno virtual local (no versionado)
 ```
 
 | Ruta | Descripción |
